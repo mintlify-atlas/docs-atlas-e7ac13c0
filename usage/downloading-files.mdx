@@ -1,0 +1,156 @@
+---
+title: Downloading Files
+description: Learn how to download individual files from GitHub repositories using cloneit
+---
+
+## Overview
+
+cloneit can download individual files from any GitHub repository without cloning the entire project. This is useful when you only need specific configuration files, scripts, or source code files.
+
+## Basic File Download
+
+To download a single file, provide the full GitHub URL to that file:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src/main.rs
+```
+
+This downloads `main.rs` to your current directory.
+
+## How It Works
+
+When downloading a file, cloneit:
+
+1. Validates the GitHub URL
+2. Makes a request to the GitHub API
+3. Retrieves the file's download URL
+4. Downloads the file content
+5. Writes the file to your local filesystem
+
+<Note>
+Single files are downloaded directly to your current directory without creating a parent folder.
+</Note>
+
+## File URL Format
+
+The URL should follow GitHub's standard file path format:
+
+```
+https://github.com/{owner}/{repo}/tree/{branch}/{path/to/file}
+```
+
+### Examples
+
+Download a Rust source file:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src/main.rs
+```
+
+Download a configuration file:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/Cargo.toml
+```
+
+Download from a specific branch:
+
+```bash
+cloneit https://github.com/username/repo/tree/develop/config.json
+```
+
+## Custom Output Location
+
+You can specify a custom path where the file should be saved:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src/main.rs custom-path
+```
+
+This creates the `custom-path` directory if it doesn't exist and saves the file there.
+
+<Tip>
+Use a custom path when organizing files from different repositories or when you need to maintain a specific directory structure.
+</Tip>
+
+## Download and Zip
+
+Even single files can be zipped using the `-z` flag:
+
+```bash
+cloneit -z https://github.com/alok8bb/cloneit/tree/master/src/main.rs
+```
+
+This downloads the file and creates a zip archive containing it.
+
+## Multiple Files
+
+To download multiple individual files, you can use comma-separated URLs:
+
+```bash
+cloneit https://github.com/fpic/linpeace.py,https://github.com/s0xf/r2gihdra.c
+```
+
+See the [Multiple URLs guide](/usage/multiple-urls) for more details.
+
+## Error Handling
+
+Common errors when downloading files:
+
+### File Not Found
+
+```
+Error parsing api object, check the provided url
+```
+
+This occurs when:
+- The file path is incorrect
+- The file doesn't exist on the specified branch
+- The repository is private and you lack authentication
+
+### Rate Limiting
+
+If you exceed GitHub's API rate limit:
+
+```
+message: "API rate limit exceeded"
+```
+
+<Warning>
+Set the `GITHUB_TOKEN` environment variable to increase your rate limit from 60 to 5,000 requests per hour.
+</Warning>
+
+## Authentication for Private Files
+
+To download files from private repositories:
+
+```bash
+export GITHUB_TOKEN=your_personal_access_token
+cloneit https://github.com/username/private-repo/tree/main/secret-config.yml
+```
+
+## Quiet Mode
+
+Silence informational output when downloading files:
+
+```bash
+cloneit -q https://github.com/alok8bb/cloneit/tree/master/src/main.rs
+```
+
+This only displays warnings and errors, useful for scripting.
+
+## Technical Details
+
+Under the hood, cloneit:
+
+1. Calls the GitHub Contents API with the file path
+2. Receives an `ApiObject` response containing the `download_url`
+3. Makes an authenticated request to the download URL
+4. Streams the file content to disk using async I/O
+5. Logs the file creation with a `+` prefix
+
+## Next Steps
+
+- Learn about [downloading entire directories](/usage/downloading-directories)
+- Explore [creating zip archives](/usage/zip-archives)
+- Download from [multiple URLs](/usage/multiple-urls)

@@ -1,0 +1,232 @@
+---
+title: Downloading Directories
+description: Learn how to download entire directories and subdirectories from GitHub repositories using cloneit
+---
+
+## Overview
+
+cloneit excels at downloading specific directories from GitHub repositories without cloning the entire project. This is particularly useful for large monorepos or when you only need a specific module or package.
+
+## Basic Directory Download
+
+To download an entire repository:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit
+```
+
+This creates a `cloneit` directory in your current location with all repository contents.
+
+## Downloading Subdirectories
+
+Download a specific folder within a repository:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src
+```
+
+This downloads only the `src` directory, creating a local `src` folder with all its contents.
+
+## How It Works
+
+When downloading directories, cloneit:
+
+1. Validates the GitHub URL
+2. Queries the GitHub API for directory contents
+3. Creates the root directory locally
+4. Recursively processes subdirectories
+5. Downloads all files while preserving structure
+
+<Note>
+cloneit uses async recursive operations to efficiently download nested directory structures.
+</Note>
+
+## Directory URL Format
+
+The URL should follow GitHub's standard repository or directory path format:
+
+```
+https://github.com/{owner}/{repo}
+https://github.com/{owner}/{repo}/tree/{branch}
+https://github.com/{owner}/{repo}/tree/{branch}/{path/to/dir}
+```
+
+### Examples
+
+Download the entire repository:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit
+```
+
+Download a specific directory:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src
+```
+
+Download from a different branch:
+
+```bash
+cloneit https://github.com/fpic/defpol/master
+```
+
+## Recursive Download
+
+cloneit automatically handles nested directory structures:
+
+- All subdirectories are created locally
+- Files are downloaded recursively
+- Directory hierarchy is preserved exactly as it appears in the repository
+- Each file download is logged with a `+` prefix
+
+```bash
+$ cloneit https://github.com/alok8bb/cloneit/tree/master/src
+[1/4] Cloning "https://github.com/alok8bb/cloneit/tree/master/src"...
+[1/3] Validating url...
+[2/3] Downloading...
++ main.rs
++ args.rs
++ requests.rs
++ parser.rs
++ file_archiver.rs
++ output.rs
+[3/3] Downloaded successfully.
+```
+
+## Custom Output Location
+
+You can specify where the directory should be downloaded:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src custom-location
+```
+
+This creates `custom-location` directory and places all contents there.
+
+<Tip>
+Use `.` as the custom path to download contents directly into the current directory without creating a parent folder.
+</Tip>
+
+## Directory Structure Preservation
+
+Given this repository structure:
+
+```
+src/
+├── main.rs
+├── args.rs
+├── requests.rs
+├── parser.rs
+├── file_archiver.rs
+└── output.rs
+```
+
+Running `cloneit https://github.com/alok8bb/cloneit/tree/master/src` creates:
+
+```
+src/
+├── main.rs
+├── args.rs
+├── requests.rs
+├── parser.rs
+├── file_archiver.rs
+└── output.rs
+```
+
+The exact structure is preserved locally.
+
+## Download and Zip
+
+Download a directory and automatically create a zip archive:
+
+```bash
+cloneit -z https://github.com/alok8bb/cloneit
+```
+
+This:
+1. Downloads the directory
+2. Creates the file structure
+3. Zips everything into `cloneit.zip`
+
+See the [Zip Archives guide](/usage/zip-archives) for more details.
+
+## Multiple Directories
+
+Download multiple directories in one command using comma-separated URLs:
+
+```bash
+cloneit https://github.com/user/repo1,https://github.com/user/repo2/tree/main/src
+```
+
+Each directory is processed sequentially with progress indicators.
+
+## Error Handling
+
+Common errors when downloading directories:
+
+### Invalid Repository
+
+```
+Error parsing api object, check the provided url
+```
+
+This occurs when the repository doesn't exist or you don't have access.
+
+### Permission Errors
+
+For private repositories without authentication:
+
+```
+message: "Not Found"
+```
+
+<Warning>
+Set the `GITHUB_TOKEN` environment variable to access private repositories and increase API rate limits.
+</Warning>
+
+## Authentication
+
+Download private directories:
+
+```bash
+export GITHUB_TOKEN=your_personal_access_token
+cloneit https://github.com/username/private-repo
+```
+
+The token is automatically included in API requests.
+
+## Quiet Mode
+
+Minimize output when downloading directories:
+
+```bash
+cloneit -q https://github.com/alok8bb/cloneit/tree/master/src
+```
+
+Only warnings and errors will be displayed.
+
+## Technical Implementation
+
+When the GitHub API returns an array response (indicating a directory):
+
+1. cloneit creates the root directory if needed
+2. Iterates through each item in the response
+3. For subdirectories: creates the directory and recursively calls `get_dir()`
+4. For files: calls `write_file()` to download and save
+5. Continues until all nested content is downloaded
+
+This is handled in `src/requests.rs` using async recursion:
+
+```rust
+#[async_recursion]
+async fn get_dir(url: &str, client: &Client, path: &Path) -> Result<(), Box<dyn Error>> {
+    // Recursively download directory contents
+}
+```
+
+## Next Steps
+
+- Learn about [downloading individual files](/usage/downloading-files)
+- Explore [creating zip archives](/usage/zip-archives)
+- Download from [multiple URLs](/usage/multiple-urls)

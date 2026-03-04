@@ -1,0 +1,58 @@
+---
+title: Introduction
+description: Learn about cloneit, a CLI tool to download specific GitHub directories or files
+---
+
+## What is cloneit?
+
+cloneit is a command-line tool that allows you to download specific GitHub directories or files without cloning the entire repository. Instead of downloading gigabytes of data when you only need a single folder or file, cloneit fetches exactly what you need.
+
+## Why cloneit?
+
+When working with large GitHub repositories, you often only need a specific directory or file. Traditional git clone downloads the entire repository history, which can be:
+
+- Time-consuming for large repositories
+- Wasteful of bandwidth and disk space
+- Unnecessary when you only need a specific component
+
+cloneit solves this by allowing you to target exactly what you need, saving time and resources.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Selective Downloads" icon="download">
+    Download specific directories or files from any GitHub repository without cloning the entire repo
+  </Card>
+  
+  <Card title="Multiple URLs" icon="link">
+    Pass multiple comma-delimited URLs to download multiple resources in a single command
+  </Card>
+  
+  <Card title="Zip Support" icon="file-zipper">
+    Optionally download and automatically zip directories for easy archiving
+  </Card>
+  
+  <Card title="Fast & Lightweight" icon="bolt">
+    Built with Rust for speed and efficiency, with minimal resource usage
+  </Card>
+</CardGroup>
+
+## Use Cases
+
+- Extract example code from documentation repositories
+- Download specific configuration files from large projects
+- Grab utility scripts without cloning entire tooling repositories
+- Archive specific project directories
+- Quickly access learning resources from educational repositories
+
+## Technology
+
+cloneit is built with Rust, leveraging:
+
+- **Asynchronous operations** for fast concurrent downloads
+- **Minimal dependencies** for a lightweight binary
+- **Cross-platform support** for Linux, macOS, and Windows
+
+<Note>
+  cloneit is developed by [Alok P](https://github.com/alok8bb) and is open source under the MIT license.
+</Note>

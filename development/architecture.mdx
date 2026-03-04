@@ -1,0 +1,202 @@
+---
+title: Architecture
+description: Understanding the code structure and design of cloneit
+---
+
+cloneit is built with Rust and uses an async architecture to efficiently download files from GitHub. This page explains the codebase structure and how different modules work together.
+
+## Project Structure
+
+The codebase is organized into the following modules:
+
+```
+src/
+├── main.rs           # Application entry point and orchestration
+├── args.rs           # Command-line argument parsing
+├── parser.rs         # URL and path parsing logic
+├── requests.rs       # GitHub API interactions and downloads
+├── file_archiver.rs  # ZIP compression functionality
+└── output.rs         # Output formatting constants
+```
+
+## Module Overview
+
+### main.rs
+
+The entry point orchestrates the entire download process:
+
+- Parses command-line arguments using clap
+- Configures logging with `env_logger`
+- Manages color output based on environment variables (`FORCE_COLOR`, `NO_COLOR`)
+- Iterates through URLs and coordinates the download workflow
+- Implements a 3-step or 5-step process (depending on whether zipping is enabled):
+  1. Validate URL
+  2. Download files
+  3. Complete (or continue to steps 4-5 for zipping)
+
+Key features:
+- Uses `#[tokio::main]` for async runtime
+- Handles multiple URLs sequentially
+- Provides progress indicators for each step
+
+**Location**: `src/main.rs:1`
+
+### args.rs
+
+Defines the command-line interface using clap's derive macros:
+
+```rust
+pub struct CommandArgs {
+    pub urls: Vec<String>,      // Comma-delimited URLs
+    pub path: Option<String>,   // Optional custom clone path
+    pub zipped: bool,           // -z flag for ZIP compression
+    pub quiet: bool,            // -q flag to disable verbose logging
+}
+```
+
+The module uses clap 4.x's derive API for declarative argument parsing:
+- Supports multiple URLs via comma-delimited values
+- Provides both short (`-z`) and long (`--zip`) flags
+- Custom help template for consistent CLI output
+
+**Location**: `src/args.rs:1`
+
+### parser.rs
+
+Handles URL parsing and path extraction:
+
+#### Directory Structure
+
+```rust
+pub struct Directory {
+    pub root: String,           // Root directory name
+    pub branch: String,         // Git branch name
+    pub path: String,           // Path within repository
+    pub username: String,       // GitHub username
+    pub repository: String,     // Repository name
+    pub clone_path: Option<String>,  // Custom clone destination
+}
+```
+
+#### Key Functions
+
+- **`parse_url(url: &str)`**: Validates and extracts the path component from a GitHub URL using the `url` crate
+- **`parse_path(path: &str, clone_path: Option<String>)`**: Parses the path into structured data, extracting username, repository, branch, and file path
+
+The parser handles various GitHub URL formats:
+- Repository root: `github.com/user/repo`
+- Specific branch: `github.com/user/repo/tree/branch`
+- Directory path: `github.com/user/repo/tree/branch/path/to/dir`
+- File path: `github.com/user/repo/tree/branch/path/to/file.rs`
+
+**Location**: `src/parser.rs:1`
+
+### requests.rs
+
+Handles all GitHub API interactions and file downloads using async/await:
+
+#### API Response Types
+
+```rust
+enum ApiResponse {
+    Object(ApiObject),    // Single file
+    Array(ApiData),       // Directory listing
+    Message(ApiMessage),  // Error message
+}
+```
+
+#### Key Functions
+
+- **`fetch_data(data: &Directory)`**: Main entry point that constructs GitHub API URLs
+- **`build_request(url: &str, client: &Client)`**: Builds HTTP requests with optional GitHub token authentication
+- **`download()`**: Determines whether the target is a file or directory and initiates download
+- **`get_dir()` (recursive)**: Recursively downloads directory contents using `#[async_recursion]`
+- **`write_file()`**: Downloads individual files using chunked streaming to handle large files efficiently
+
+#### GitHub API Integration
+
+The module uses the GitHub Contents API:
+- Base URL: `https://api.github.com/repos/{user}/{repo}/contents/{path}`
+- Supports authentication via `GITHUB_TOKEN` environment variable
+- Handles rate limiting and error messages from GitHub
+
+#### Async Recursion
+
+The `get_dir()` function uses the `async-recursion` crate to recursively traverse directory structures asynchronously, allowing efficient parallel downloads.
+
+**Location**: `src/requests.rs:1`
+
+### file_archiver.rs
+
+Implements ZIP compression functionality:
+
+```rust
+pub struct ZipArchiver {
+    m_src_dir: String,           // Source directory to compress
+    m_dest_zip_fname: String,    // Destination ZIP filename
+    m_dst_zip_exists: Cell<bool>, // Tracks if ZIP exists (interior mutability)
+    m_compress_method: zip::CompressionMethod, // Compression method (Deflated)
+}
+```
+
+#### Key Methods
+
+- **`new(src_dir: &str, dest_zip_fname: &str)`**: Creates a new archiver instance
+- **`run()`**: Executes the archiving process
+- **`zip_dir()`**: Recursively adds files and directories to the ZIP archive
+
+The archiver uses:
+- **walkdir** crate for directory traversal
+- **zip** crate for creating ZIP archives
+- Deflate compression method
+- Unix permissions (0o755) for archived files
+
+**Location**: `src/file_archiver.rs:1`
+
+### output.rs
+
+Defines Unicode constants for visual output:
+
+```rust
+pub const LOOKING_GLASS: char = '🔍';  // URL validation
+pub const TRUCK: char = '🚚';           // Downloading
+pub const SPARKLES: char = '✨';        // Success
+pub const PACKAGE: char = '📦';         // Zipping
+```
+
+These constants provide visual indicators in the CLI output for different stages of the download process.
+
+**Location**: `src/output.rs:1`
+
+## Async Flow
+
+cloneit uses Tokio for asynchronous operations:
+
+1. **Main function** (`#[tokio::main]`) initializes the async runtime
+2. **Sequential URL processing**: Each URL is processed one at a time to maintain clear progress output
+3. **Async recursion**: Directory traversal uses async recursion via the `async-recursion` crate
+4. **Parallel file operations**: Within a directory, file downloads can be processed concurrently
+5. **Chunked streaming**: Large files are downloaded in chunks using async streaming (`while let Some(chunk) = res.chunk().await`)
+
+This architecture allows cloneit to efficiently handle:
+- Multiple files within a directory
+- Large file downloads without loading entire files into memory
+- Nested directory structures through recursive async calls
+
+## Error Handling
+
+The codebase uses Rust's `Result<T, Box<dyn Error>>` pattern throughout:
+
+- All functions that can fail return `Result` types
+- Errors are propagated using the `?` operator
+- Custom error messages are created using `.into()` on string literals
+- The main function exits with `process::exit(0)` on critical errors
+
+## Logging
+
+The application uses the `log` and `env_logger` crates:
+
+- Configurable log levels via command-line (`--quiet` flag)
+- Structured logging with `log::info!()` and `log::error!()` macros
+- Color-coded output using the `yansi` crate
+- Logs include progress indicators (`[1/3]`, `[2/3]`, etc.)

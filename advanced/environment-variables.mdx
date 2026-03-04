@@ -1,0 +1,163 @@
+---
+title: Environment Variables
+description: Configure cloneit behavior using environment variables
+---
+
+## Overview
+
+The `cloneit` CLI supports several environment variables to customize its behavior, including authentication, output formatting, and logging.
+
+## Available Environment Variables
+
+### GITHUB_TOKEN
+
+<ParamField path="GITHUB_TOKEN" type="string">
+  GitHub personal access token for API authentication. Increases rate limits from 60 to 5,000 requests per hour and enables access to private repositories.
+</ParamField>
+
+**Usage:**
+```bash
+export GITHUB_TOKEN="ghp_your_token_here"
+cloneit https://github.com/user/repo/tree/main/src
+```
+
+**Details:**
+- Optional for public repositories
+- Required for private repositories
+- Used in API requests (src/requests.rs:65-67) and file downloads (src/requests.rs:188-190)
+- See [Authentication](/advanced/authentication) for more details
+
+### FORCE_COLOR
+
+<ParamField path="FORCE_COLOR" type="boolean">
+  Force colored output even when output is not a TTY (e.g., when piping to a file or CI/CD environment).
+</ParamField>
+
+**Usage:**
+```bash
+export FORCE_COLOR=1
+cloneit https://github.com/user/repo/tree/main/src
+```
+
+**Details:**
+- Set to any value to enable (src/main.rs:34-35)
+- Overrides automatic color detection
+- Useful for CI/CD pipelines that support ANSI colors
+- Takes precedence over `NO_COLOR`
+
+### NO_COLOR
+
+<ParamField path="NO_COLOR" type="boolean">
+  Disable colored output. Follows the [NO_COLOR standard](https://no-color.org/).
+</ParamField>
+
+**Usage:**
+```bash
+export NO_COLOR=1
+cloneit https://github.com/user/repo/tree/main/src
+```
+
+**Details:**
+- Set to any value to disable colors (src/main.rs:36-37)
+- Useful for log files or environments without color support
+- Ignored if `FORCE_COLOR` is set
+- Follows the NO_COLOR convention
+
+### RUST_LOG
+
+<ParamField path="RUST_LOG" type="string">
+  Control logging verbosity. Standard Rust logging environment variable used by the `env_logger` crate.
+</ParamField>
+
+**Usage:**
+```bash
+# Show all log levels
+export RUST_LOG=trace
+cloneit https://github.com/user/repo/tree/main/src
+
+# Show only warnings and errors
+export RUST_LOG=warn
+cloneit https://github.com/user/repo/tree/main/src
+
+# Show debug info for cloneit only
+export RUST_LOG=cloneit=debug
+cloneit https://github.com/user/repo/tree/main/src
+```
+
+**Log Levels:**
+- `error` - Only errors
+- `warn` - Warnings and errors
+- `info` - Default level (informational messages)
+- `debug` - Detailed debugging information
+- `trace` - Very verbose output
+
+**Note:** The `--quiet` flag overrides this and sets the level to `warn` (src/main.rs:25-29).
+
+## Color Output Behavior
+
+The color output logic is implemented in src/main.rs:33-41:
+
+```rust
+const USE_COLOR: Condition = Condition(|| {
+    if std::env::var_os("FORCE_COLOR").is_some() {
+        true
+    } else if std::env::var_os("NO_COLOR").is_some() {
+        false
+    } else {
+        true
+    }
+});
+```
+
+**Priority:**
+1. `FORCE_COLOR` - If set, colors are enabled
+2. `NO_COLOR` - If set (and `FORCE_COLOR` is not), colors are disabled
+3. Default - Colors are enabled by default
+
+## Configuration Examples
+
+### Development Environment
+
+```bash
+# ~/.bashrc or ~/.zshrc
+export GITHUB_TOKEN="ghp_your_token_here"
+export RUST_LOG=info
+```
+
+### CI/CD Environment
+
+```yaml
+# GitHub Actions example
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  FORCE_COLOR: 1
+  RUST_LOG: info
+```
+
+### Minimal Output (Scripts)
+
+```bash
+export NO_COLOR=1
+cloneit --quiet https://github.com/user/repo/tree/main/src
+```
+
+### Debug Mode
+
+```bash
+export RUST_LOG=debug
+cloneit https://github.com/user/repo/tree/main/src
+```
+
+## Environment Variable Priority
+
+Some settings can be controlled by both environment variables and command-line flags:
+
+| Setting | Environment Variable | Command-line Flag | Priority |
+|---------|---------------------|-------------------|----------|
+| Quiet mode | `RUST_LOG=warn` | `--quiet` | Flag overrides variable |
+| Colors | `FORCE_COLOR` / `NO_COLOR` | N/A | Variable only |
+| Authentication | `GITHUB_TOKEN` | N/A | Variable only |
+
+<Tip>
+  Use environment variables for persistent configuration and command-line flags for one-off changes.
+</Tip>

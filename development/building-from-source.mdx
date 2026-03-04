@@ -1,0 +1,98 @@
+---
+title: Building from Source
+description: Learn how to build cloneit from source code using Cargo
+---
+
+You can build cloneit from source to get the latest features or contribute to development.
+
+## Prerequisites
+
+Before building from source, ensure you have the following installed:
+
+- Rust toolchain (rustc and cargo)
+- Git
+
+## Building with Cargo
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the cloneit repository from GitHub:
+
+    ```bash
+    git clone https://github.com/alok8bb/cloneit
+    cd cloneit
+    ```
+  </Step>
+
+  <Step title="Build and install">
+    Use the provided installation script to build and install cloneit:
+
+    ```bash
+    bash ./install.sh
+    ```
+
+    The script runs the following command:
+
+    ```bash
+    cargo install --path .
+    ```
+
+    This compiles the project in release mode and installs the binary to your Cargo bin directory (typically `~/.cargo/bin/`).
+  </Step>
+
+  <Step title="Verify installation">
+    After installation, verify that cloneit is available:
+
+    ```bash
+    cloneit --version
+    ```
+
+    You should see output similar to:
+
+    ```
+    cloneit 1.0.0
+    ```
+  </Step>
+</Steps>
+
+## Manual Build
+
+If you prefer to build without installing, you can use:
+
+```bash
+cargo build --release
+```
+
+The compiled binary will be located at `target/release/cloneit`.
+
+## Release Profile Configuration
+
+The project uses optimized release profile settings in `Cargo.toml` for better performance and smaller binary size:
+
+```toml
+[profile.release]
+strip = true  # Automatically strip symbols from the binary for a smaller size
+lto = true    # Enable Link Time Optimization for better performance
+```
+
+### What these settings do:
+
+- **`strip = true`**: Removes debugging symbols from the binary, significantly reducing its size
+- **`lto = true`**: Enables Link Time Optimization, which performs whole-program optimization for better runtime performance
+
+These settings result in a production-ready binary that is both fast and compact.
+
+## Dependencies
+
+The project relies on the following key dependencies:
+
+- **clap** (4.0.10): Command-line argument parsing
+- **reqwest** (0.11): HTTP client for GitHub API requests
+- **tokio** (1.x): Async runtime
+- **serde_json** (1.x): JSON serialization/deserialization
+- **zip** (0.6): File archiving functionality
+- **yansi** (1.0.1): Terminal color support
+- **async-recursion** (1.0.0): Recursive async functions
+- **walkdir** (2.x): Directory traversal
+
+All dependencies are automatically managed by Cargo during the build process.

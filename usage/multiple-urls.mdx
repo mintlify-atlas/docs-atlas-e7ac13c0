@@ -1,0 +1,278 @@
+---
+title: Multiple URLs
+description: Learn how to download from multiple GitHub repositories, directories, or files simultaneously using comma-separated URLs
+---
+
+## Overview
+
+cloneit supports downloading from multiple GitHub URLs in a single command using comma-separated syntax. This allows you to efficiently batch download files, directories, or entire repositories.
+
+## Basic Syntax
+
+Separate multiple URLs with commas:
+
+```bash
+cloneit <url1>,<url2>,<url3>
+```
+
+<Warning>
+Do not include spaces between URLs. The comma must directly separate each URL.
+</Warning>
+
+## Example Usage
+
+Download multiple files:
+
+```bash
+cloneit https://github.com/fpic/linpeace.py,https://github.com/s0xf/r2gihdra.c
+```
+
+Download multiple directories:
+
+```bash
+cloneit https://github.com/fpic/linpeace.py,https://github.com/s0xf/r2gihdra.c,https://github.com/fpic/defpol/master
+```
+
+## How It Works
+
+When processing multiple URLs, cloneit:
+
+1. Parses the comma-separated URL list
+2. Processes each URL sequentially
+3. Shows progress for each URL (e.g., `[1/3]`, `[2/3]`, `[3/3]`)
+4. Downloads all content from each URL
+5. Provides a final summary
+
+### Sequential Processing
+
+URLs are processed one at a time in the order provided:
+
+```rust
+let url_count = args.urls.len();
+for (i, url) in args.urls.iter().enumerate() {
+    log::info!(
+        "{} Cloning {:?}...",
+        format!("[{}/{}]", i + 1, url_count + 1).bold().blue()
+    );
+    // Process URL
+}
+```
+
+## Progress Tracking
+
+cloneit shows clear progress for multiple URLs:
+
+```bash
+[1/4] Cloning "https://github.com/fpic/linpeace.py"...
+[1/3] Validating url...
+[2/3] Downloading...
++ linpeace.py
+[3/3] Downloaded successfully.
+
+[2/4] Cloning "https://github.com/s0xf/r2gihdra.c"...
+[1/3] Validating url...
+[2/3] Downloading...
++ r2gihdra.c
+[3/3] Downloaded successfully.
+
+[3/4] Cloning "https://github.com/fpic/defpol/master"...
+[1/3] Validating url...
+[2/3] Downloading...
++ file1.txt
++ file2.txt
+[3/3] Downloaded successfully.
+
+[4/4] Downloaded 3 directories.
+```
+
+<Note>
+The outer counter tracks which URL is being processed, while the inner counter tracks steps for that specific download.
+</Note>
+
+## Mixing Content Types
+
+You can mix different types of downloads in one command:
+
+```bash
+cloneit https://github.com/user/repo,https://github.com/user/repo/tree/main/src,https://github.com/user/repo/tree/main/config.json
+```
+
+This downloads:
+1. An entire repository
+2. A specific directory
+3. A single file
+
+All in one command.
+
+## Command-Line Argument Parsing
+
+The URL parsing is handled by clap with comma delimitation:
+
+```rust
+#[arg(
+    value_delimiter = ',',
+    action = ArgAction::Set, 
+    num_args = 1, 
+    required = true,
+)]
+pub urls: Vec<String>,
+```
+
+This automatically splits the comma-separated string into a vector of URLs.
+
+## Combining with Other Flags
+
+### Multiple URLs with Zip
+
+Zip each download automatically:
+
+```bash
+cloneit -z https://github.com/user/repo1,https://github.com/user/repo2
+```
+
+Results in:
+- `repo1/` and `repo1.zip`
+- `repo2/` and `repo2.zip`
+
+### Multiple URLs in Quiet Mode
+
+Minimize output when downloading multiple URLs:
+
+```bash
+cloneit -q https://github.com/user/repo1,https://github.com/user/repo2,https://github.com/user/repo3
+```
+
+Only warnings and errors are shown.
+
+### Multiple URLs with Zip and Quiet
+
+Combine all flags:
+
+```bash
+cloneit -z -q https://github.com/user/repo1,https://github.com/user/repo2
+```
+
+## URL Validation
+
+Each URL is validated independently:
+
+- If any URL is invalid, cloneit exits with an error
+- URLs are validated before downloading begins
+- All URLs must be properly formatted GitHub URLs
+
+### Valid URL Examples
+
+```bash
+# All valid
+cloneit https://github.com/user/repo,https://github.com/user/repo/tree/main/src
+```
+
+### Invalid URL Example
+
+```bash
+# Second URL is invalid
+cloneit https://github.com/user/repo,https://gitlab.com/user/repo
+```
+
+This will fail because cloneit only supports GitHub URLs.
+
+## Error Handling
+
+If an error occurs while processing any URL:
+
+1. The error is logged
+2. cloneit exits immediately
+3. Subsequent URLs are not processed
+
+<Tip>
+Process URLs individually first to ensure they're all valid before batching them together.
+</Tip>
+
+## Use Cases
+
+### Collect Multiple Examples
+
+Gather example files from different repositories:
+
+```bash
+cloneit https://github.com/user1/examples/tree/main/example1.py,https://github.com/user2/samples/tree/main/sample1.js
+```
+
+### Download Project Dependencies
+
+Fetch multiple libraries or modules:
+
+```bash
+cloneit https://github.com/org/lib1,https://github.com/org/lib2,https://github.com/org/lib3
+```
+
+### Archive Multiple Versions
+
+Download and zip different versions:
+
+```bash
+cloneit -z https://github.com/user/project/tree/v1.0,https://github.com/user/project/tree/v2.0
+```
+
+### Batch Documentation Downloads
+
+Collect documentation from multiple sources:
+
+```bash
+cloneit https://github.com/user/docs/tree/main/api,https://github.com/user/docs/tree/main/guides
+```
+
+## Performance Considerations
+
+### Sequential Processing
+
+URLs are processed one at a time, not in parallel. For many URLs, the total time is the sum of individual download times.
+
+### API Rate Limiting
+
+Multiple URLs count toward your GitHub API rate limit:
+
+- Without authentication: 60 requests/hour
+- With `GITHUB_TOKEN`: 5,000 requests/hour
+
+<Warning>
+Each URL (and each nested directory) makes API requests. Be mindful of rate limits when downloading many URLs.
+</Warning>
+
+## Authentication
+
+When downloading from multiple URLs, authentication applies to all:
+
+```bash
+export GITHUB_TOKEN=your_personal_access_token
+cloneit https://github.com/user/private1,https://github.com/user/private2
+```
+
+The token is used for all API requests across all URLs.
+
+## Final Summary
+
+After processing all URLs, cloneit shows a summary:
+
+```rust
+log::info!(
+    "{} Downloaded {:?} director{}.",
+    format!("[{}/{}]", url_count + 1, url_count + 1)
+        .bold()
+        .blue(),
+    &url_count,
+    if url_count == 1 { "y" } else { "ies" },
+);
+```
+
+Example output:
+
+```
+[4/4] Downloaded 3 directories.
+```
+
+## Next Steps
+
+- Learn about [basic usage patterns](/usage/basic-usage)
+- Explore [zip archive creation](/usage/zip-archives)
+- Understand [downloading directories](/usage/downloading-directories)

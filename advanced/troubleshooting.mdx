@@ -1,0 +1,370 @@
+---
+title: Troubleshooting
+description: Common issues and solutions when using cloneit
+---
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Invalid URL Error">
+    **Error Message:**
+    ```
+    Invalid URL: <error details>
+    ```
+
+    **Cause:**
+    The URL provided is not a valid GitHub URL or is malformed. The URL validation happens in src/parser.rs:15-18.
+
+    **Solutions:**
+
+    1. **Check URL Format**
+       
+       Ensure your URL follows the correct GitHub format:
+       ```bash
+       # Correct formats
+       https://github.com/username/repository
+       https://github.com/username/repository/tree/branch/path
+       
+       # Incorrect formats
+       github.com/username/repository  # Missing protocol
+       http://github.com/username      # Missing repository
+       ```
+
+    2. **Verify URL is Complete**
+       
+       The URL must include at least the username and repository:
+       ```bash
+       cloneit https://github.com/username/repository
+       ```
+
+    3. **Check for Typos**
+       
+       Common mistakes:
+       - Missing `https://`
+       - Misspelled domain (e.g., `githib.com`)
+       - Extra or missing slashes
+
+    4. **Test URL in Browser**
+       
+       Copy the URL and paste it in your browser to verify it works
+  </Accordion>
+
+  <Accordion title="Error Parsing URL">
+    **Error Message:**
+    ```
+    Error parsing URL
+    ```
+
+    **Cause:**
+    The URL structure doesn't match the expected GitHub repository pattern. The parser requires at least username and repository name (src/parser.rs:29-31).
+
+    **Solutions:**
+
+    1. **Ensure Minimum Path Components**
+       
+       The URL must have at least 3 path segments:
+       ```bash
+       # Valid - has username and repository
+       https://github.com/username/repository
+       
+       # Invalid - missing repository
+       https://github.com/username
+       ```
+
+    2. **Use Full Repository URLs**
+       
+       For specific files or directories, use the full tree URL:
+       ```bash
+       https://github.com/username/repo/tree/main/src/components
+       ```
+
+    3. **Avoid Fragment or Query Parameters**
+       
+       Remove any `#` fragments or `?` query parameters from the URL
+  </Accordion>
+
+  <Accordion title="API Rate Limit Exceeded">
+    **Error Message:**
+    ```
+    API rate limit exceeded for <your-ip>
+    ```
+
+    **Cause:**
+    GitHub limits unauthenticated requests to 60 per hour. Without a token, you'll hit this limit quickly.
+
+    **Solutions:**
+
+    1. **Set Up Authentication**
+       
+       The most effective solution - increases limit to 5,000 requests/hour:
+       ```bash
+       export GITHUB_TOKEN="your_github_token_here"
+       cloneit https://github.com/user/repo/tree/main/src
+       ```
+       
+       See [Authentication](/advanced/authentication) for detailed setup.
+
+    2. **Check Current Rate Limit**
+       
+       Verify your current usage:
+       ```bash
+       curl https://api.github.com/rate_limit
+       ```
+
+    3. **Wait for Reset**
+       
+       Rate limits reset every hour. Check the reset time:
+       ```bash
+       curl -I https://api.github.com/users/octocat | grep -i x-ratelimit
+       ```
+
+    4. **Use Authenticated Token**
+       
+       Create a GitHub personal access token and set it as an environment variable (documented in src/requests.rs:65-67)
+  </Accordion>
+
+  <Accordion title="Network Connection Errors">
+    **Error Message:**
+    ```
+    error sending request for url
+    Connection timeout
+    DNS resolution failed
+    ```
+
+    **Cause:**
+    Network connectivity issues preventing the tool from reaching GitHub's API.
+
+    **Solutions:**
+
+    1. **Check Internet Connection**
+       
+       Verify you can reach GitHub:
+       ```bash
+       ping github.com
+       curl https://api.github.com/
+       ```
+
+    2. **Check Proxy Settings**
+       
+       If behind a corporate proxy, ensure it's configured:
+       ```bash
+       export HTTP_PROXY=http://proxy.example.com:8080
+       export HTTPS_PROXY=http://proxy.example.com:8080
+       ```
+
+    3. **Verify DNS Resolution**
+       
+       Test DNS lookup:
+       ```bash
+       nslookup github.com
+       dig github.com
+       ```
+
+    4. **Check Firewall Rules**
+       
+       Ensure outbound HTTPS (port 443) is allowed
+
+    5. **Try Different Network**
+       
+       Test on a different network to isolate the issue
+  </Accordion>
+
+  <Accordion title="Permission Denied / File Not Found">
+    **Error Message:**
+    ```
+    Could not get the download link!
+    Permission denied
+    ```
+
+    **Cause:**
+    Either the repository is private and requires authentication, or the specified path doesn't exist.
+
+    **Solutions:**
+
+    1. **For Private Repositories**
+       
+       Set up authentication with appropriate permissions:
+       ```bash
+       export GITHUB_TOKEN="your_token_with_repo_access"
+       ```
+       
+       Ensure your token has `repo` scope for private repositories.
+
+    2. **Verify Path Exists**
+       
+       Check that the path exists in the repository:
+       - Visit the URL in your browser
+       - Verify the branch name is correct
+       - Check the file/directory path spelling
+
+    3. **Check Branch Name**
+       
+       Ensure you're using the correct branch:
+       ```bash
+       # Correct
+       https://github.com/user/repo/tree/main/src
+       
+       # If default branch is 'master' not 'main'
+       https://github.com/user/repo/tree/master/src
+       ```
+
+    4. **Verify Repository Access**
+       
+       Confirm you have access to the repository in your browser while logged in
+  </Accordion>
+
+  <Accordion title="Could Not Get Download Link">
+    **Error Message:**
+    ```
+    Could not get the download link!
+    ```
+
+    **Cause:**
+    The API response didn't include a download URL for the file. This error is raised in src/requests.rs:203.
+
+    **Solutions:**
+
+    1. **Verify Item is a File**
+       
+       This error typically occurs when the item is not a file. Ensure you're not trying to download a submodule or symbolic link.
+
+    2. **Check Repository Structure**
+       
+       Some GitHub repository items don't have download URLs:
+       - Git submodules
+       - Symbolic links
+       - Some special GitHub objects
+
+    3. **Try Parent Directory**
+       
+       Instead of the specific file, try cloning the parent directory:
+       ```bash
+       # Instead of specific file
+       cloneit https://github.com/user/repo/tree/main/src/file.txt
+       
+       # Try parent directory
+       cloneit https://github.com/user/repo/tree/main/src
+       ```
+
+    4. **Authenticate**
+       
+       Some edge cases may require authentication:
+       ```bash
+       export GITHUB_TOKEN="your_token"
+       ```
+  </Accordion>
+
+  <Accordion title="Zip Creation Failed">
+    **Error Message:**
+    ```
+    Failed to zip files
+    ```
+
+    **Cause:**
+    When using the `--zipped` flag, the zip creation process failed (src/main.rs:109-113).
+
+    **Solutions:**
+
+    1. **Check Disk Space**
+       
+       Ensure you have enough disk space:
+       ```bash
+       df -h .
+       ```
+
+    2. **Verify Write Permissions**
+       
+       Ensure you have write permissions in the current directory:
+       ```bash
+       ls -la .
+       touch test.txt && rm test.txt
+       ```
+
+    3. **Check Directory Exists**
+       
+       The directory to zip must exist and contain files:
+       ```bash
+       ls -la <directory-name>
+       ```
+
+    4. **Try Without --zipped**
+       
+       Clone without the `--zipped` flag first, then zip manually:
+       ```bash
+       cloneit https://github.com/user/repo/tree/main/src
+       zip -r archive.zip <directory-name>
+       ```
+  </Accordion>
+
+  <Accordion title="Quiet Mode Not Working">
+    **Issue:**
+    Output is still showing even with `--quiet` flag.
+
+    **Cause:**
+    The `--quiet` flag only suppresses info-level logs, not warnings and errors (src/main.rs:25-29).
+
+    **Solutions:**
+
+    1. **Understand Quiet Mode Behavior**
+       
+       Quiet mode shows:
+       - Warnings (important notices)
+       - Errors (failures)
+       
+       Quiet mode hides:
+       - Info messages (progress updates)
+
+    2. **Suppress All Output**
+       
+       To suppress everything except errors:
+       ```bash
+       RUST_LOG=error cloneit --quiet <url>
+       ```
+
+    3. **Redirect Output**
+       
+       For complete silence in scripts:
+       ```bash
+       cloneit --quiet <url> 2>/dev/null
+       ```
+  </Accordion>
+</AccordionGroup>
+
+## Debug Mode
+
+For additional troubleshooting, enable debug logging:
+
+```bash
+RUST_LOG=debug cloneit https://github.com/user/repo/tree/main/src
+```
+
+This will show:
+- API request URLs
+- Response parsing details
+- File operations
+- Detailed error information
+
+## Getting Help
+
+If you're still experiencing issues:
+
+1. **Check Existing Issues**
+   
+   Search the GitHub issues for similar problems
+
+2. **Gather Information**
+   
+   When reporting issues, include:
+   - The exact command you ran
+   - The complete error message
+   - Debug output (`RUST_LOG=debug`)
+   - Operating system and version
+   - cloneit version (`cloneit --version`)
+
+3. **Create a Minimal Example**
+   
+   Try to reproduce the issue with a public repository if possible
+
+4. **Report the Issue**
+   
+   Open a new issue on the cloneit GitHub repository with all gathered information

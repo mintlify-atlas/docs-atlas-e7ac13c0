@@ -1,0 +1,240 @@
+---
+title: Zip Archives
+description: Learn how to download and automatically compress GitHub directories and files into zip archives using cloneit
+---
+
+## Overview
+
+cloneit can automatically create zip archives of downloaded content using the `-z` flag. This feature is useful for archiving, distribution, or when you need compressed versions of GitHub repositories or directories.
+
+<Note>
+The zip archive functionality was implemented by [@winterrdog](https://github.com/winterrdog).
+</Note>
+
+## Basic Usage
+
+Add the `-z` or `--zip` flag to any cloneit command:
+
+```bash
+cloneit -z https://github.com/alok8bb/cloneit
+```
+
+This downloads the repository and creates `cloneit.zip` in your current directory.
+
+## How It Works
+
+When you use the `-z` flag, cloneit:
+
+1. Validates the GitHub URL
+2. Downloads the directory or file
+3. Creates the local file structure
+4. Zips the downloaded content
+5. Creates a `.zip` file named after the root directory
+
+### Process Steps
+
+With the `-z` flag, you'll see additional steps in the output:
+
+```bash
+[1/5] Validating url...
+[2/5] Downloading...
++ main.rs
++ args.rs
+[3/5] Downloaded successfully.
+[4/5] Zipping...
+[5/5] Zipped successfully.
+```
+
+## Zipping Directories
+
+Zip an entire repository:
+
+```bash
+cloneit -z https://github.com/alok8bb/cloneit
+```
+
+Results in:
+- Downloaded directory: `cloneit/`
+- Zip archive: `cloneit.zip`
+
+Zip a specific subdirectory:
+
+```bash
+cloneit -z https://github.com/alok8bb/cloneit/tree/master/src
+```
+
+Results in:
+- Downloaded directory: `src/`
+- Zip archive: `src.zip`
+
+## Zipping Individual Files
+
+The `-z` flag also works with single files:
+
+```bash
+cloneit -z https://github.com/alok8bb/cloneit/tree/master/src/main.rs
+```
+
+This creates a zip archive containing the single file.
+
+<Tip>
+Zipping single files can be useful when you need to email or transfer files through systems that prefer archives.
+</Tip>
+
+## Archive Naming
+
+The zip file is automatically named based on the root directory:
+
+```rust
+let dst_zip = format!("{}.zip", &data.root);
+```
+
+### Examples
+
+| Command | Directory Created | Zip Archive |
+|---------|------------------|-------------|
+| `cloneit -z https://github.com/user/repo` | `repo/` | `repo.zip` |
+| `cloneit -z https://github.com/user/repo/tree/main/src` | `src/` | `src.zip` |
+| `cloneit -z https://github.com/user/repo custom-name` | `custom-name/` | `custom-name.zip` |
+
+## Multiple URLs with Zip
+
+You can zip multiple downloads in one command:
+
+```bash
+cloneit -z https://github.com/user/repo1,https://github.com/user/repo2
+```
+
+This creates:
+- `repo1/` and `repo1.zip`
+- `repo2/` and `repo2.zip`
+
+Each URL is processed sequentially, and each gets its own zip archive.
+
+## Combining Flags
+
+Combine `-z` with other flags for additional control:
+
+### Quiet Zip Mode
+
+```bash
+cloneit -z -q https://github.com/alok8bb/cloneit
+```
+
+Downloads and zips with minimal output.
+
+### Custom Path with Zip
+
+```bash
+cloneit -z https://github.com/alok8bb/cloneit my-archive
+```
+
+Results in:
+- Downloaded directory: `my-archive/`
+- Zip archive: `my-archive.zip`
+
+## Technical Implementation
+
+The zipping process is handled by the `ZipArchiver` in `src/file_archiver.rs`:
+
+```rust
+if args.zipped {
+    log::info!(
+        "{} {} Zipping...",
+        format!("[4/{steps}]").bold().yellow(),
+        output::PACKAGE
+    );
+
+    let dst_zip = format!("{}.zip", &data.root);
+    let zipper = ZipArchiver::new(&data.root, &dst_zip);
+    match zipper.run() {
+        Ok(_) => log::info!(
+            "{} {} Zipped successfully.",
+            format!("[5/{steps}]").bold().yellow(),
+            output::SPARKLES
+        ),
+        Err(ZipError::FileNotFound) => {
+            log::error!("{}", "Failed to zip files".bold().red())
+        }
+        Err(e) => log::error!("{}", e.to_string().bold().red()),
+    }
+}
+```
+
+The archiver:
+1. Takes the root directory path
+2. Creates a zip file with the same name
+3. Recursively adds all files and directories
+4. Preserves the directory structure within the archive
+
+## Error Handling
+
+### File Not Found Error
+
+```
+Failed to zip files
+```
+
+This occurs when the downloaded directory doesn't exist or was deleted before zipping.
+
+### Zip Creation Errors
+
+Other zip-related errors are displayed with full error messages from the zip library.
+
+<Warning>
+Ensure you have write permissions in the current directory and sufficient disk space for both the extracted files and the zip archive.
+</Warning>
+
+## Use Cases
+
+### Archive Code Snippets
+
+Quickly archive specific directories for reference:
+
+```bash
+cloneit -z https://github.com/user/examples/tree/main/patterns
+```
+
+### Distribution
+
+Create distributable archives:
+
+```bash
+cloneit -z https://github.com/user/library/tree/main/dist
+```
+
+### Backup
+
+Backup specific repository versions:
+
+```bash
+cloneit -z https://github.com/user/project/tree/v1.0.0
+```
+
+### Offline Access
+
+Download and compress for offline viewing:
+
+```bash
+cloneit -z https://github.com/user/docs/tree/main/api
+```
+
+## File Structure in Archive
+
+The zip archive preserves the exact directory structure:
+
+```
+cloneit.zip
+├── src/
+│   ├── main.rs
+│   ├── args.rs
+│   └── requests.rs
+├── Cargo.toml
+└── README.md
+```
+
+## Next Steps
+
+- Learn about [downloading multiple URLs](/usage/multiple-urls)
+- Explore [basic usage patterns](/usage/basic-usage)
+- Understand [directory downloads](/usage/downloading-directories)

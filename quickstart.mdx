@@ -1,80 +1,157 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with cloneit in minutes
 ---
 
-## Get started in three steps
+## Quick Introduction
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through the most common cloneit operations. By the end, you'll know how to download files, directories, and create zipped archives from GitHub repositories.
 
-### Step 1: Set up your local environment
+## Basic Usage
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+The basic syntax for cloneit is:
 
-### Step 2: Deploy your changes
+```bash
+cloneit [OPTIONS] <url>...
+```
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+Where `<url>` is a GitHub URL pointing to a repository, directory, or file.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Common Operations
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Download a Single File">
+    To download a specific file from a GitHub repository:
 
-### Step 3: Go live
+    ```bash
+    cloneit https://github.com/alok8bb/cloneit/tree/master/src/main.rs
+    ```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    This downloads just the `main.rs` file to your current directory.
 
-## Next steps
+    <Note>
+      The file will be saved with its original name in the current working directory.
+    </Note>
+  </Step>
 
-Now that you have your docs running, explore these key features:
+  <Step title="Download a Directory">
+    To download an entire directory from a repository:
 
-<CardGroup cols={2}>
+    ```bash
+    cloneit https://github.com/alok8bb/cloneit/tree/master/src
+    ```
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+    This downloads the entire `src` directory with all its contents, preserving the folder structure.
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+    You can also download the entire repository:
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+    ```bash
+    cloneit https://github.com/alok8bb/cloneit
+    ```
+  </Step>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+  <Step title="Download and Zip">
+    Use the `-z` flag to automatically zip the downloaded content:
 
-</CardGroup>
+    ```bash
+    cloneit -z https://github.com/alok8bb/cloneit
+    ```
+
+    This downloads the repository and creates a `cloneit.zip` file containing all the contents.
+
+    <Note>
+      The zip feature was contributed by [@winterrdog](https://github.com/winterrdog).
+    </Note>
+  </Step>
+
+  <Step title="Download Multiple Resources">
+    Download multiple files or directories in a single command using comma-delimited URLs:
+
+    ```bash
+    cloneit https://github.com/alok8bb/cloneit/tree/master/src,https://github.com/alok8bb/cloneit/tree/master/Cargo.toml
+    ```
+
+    <Warning>
+      Do not include spaces after the commas when specifying multiple URLs.
+    </Warning>
+  </Step>
+</Steps>
+
+## Command Options
+
+<ParamField path="url" type="string" required>
+  GitHub URL(s) to download. Accepts:
+  - Repository URLs: `https://github.com/user/repo`
+  - Directory URLs: `https://github.com/user/repo/tree/branch/path`
+  - File URLs: `https://github.com/user/repo/blob/branch/path/file.ext`
+  
+  Multiple URLs can be comma-separated (no spaces).
+</ParamField>
+
+<ParamField path="-z, --zip" type="flag">
+  Download and automatically zip the directory or file.
+</ParamField>
+
+<ParamField path="-q, --quiet" type="flag">
+  Disable verbose logging and only show warnings.
+</ParamField>
+
+<ParamField path="-h, --help" type="flag">
+  Print help information.
+</ParamField>
+
+<ParamField path="-V, --version" type="flag">
+  Print version information.
+</ParamField>
+
+## Real-World Examples
+
+<CodeGroup>
+```bash Download configuration file
+cloneit https://github.com/user/dotfiles/tree/main/.vimrc
+```
+
+```bash Download examples directory
+cloneit https://github.com/user/project/tree/main/examples
+```
+
+```bash Archive a specific release
+cloneit -z https://github.com/user/project/tree/v1.0.0
+```
+
+```bash Batch download utilities
+cloneit https://github.com/user/scripts/tree/main/backup.sh,https://github.com/user/scripts/tree/main/deploy.sh
+```
+</CodeGroup>
+
+## What Happens During Download?
+
+When you run a cloneit command, the tool:
+
+1. **Validates the URL** - Ensures it's a valid GitHub URL
+2. **Downloads content** - Fetches the specified files or directories
+3. **Preserves structure** - Maintains the original directory hierarchy
+4. **Zips if requested** - Creates an archive if the `-z` flag is used
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Downloaded files are saved to your current working directory. Make sure you're in the correct directory before running cloneit.
 </Note>
+
+## Tips
+
+- Use the `-q` flag when running cloneit in scripts to reduce output
+- The `-z` flag is useful for archiving project snapshots
+- You can clone from any branch by using the full GitHub URL with the branch name
+- Downloaded directories maintain their original structure, making integration into projects seamless
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Command Reference" icon="terminal" href="/commands/overview">
+    Explore all available commands and options
+  </Card>
+  
+  <Card title="Usage Guide" icon="code" href="/usage/basic-usage">
+    See more real-world usage examples
+  </Card>
+</CardGroup>

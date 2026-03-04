@@ -1,0 +1,123 @@
+---
+title: Basic Usage
+description: Learn the fundamental usage patterns and common workflows of cloneit CLI tool
+---
+
+## Overview
+
+cloneit is designed to download specific GitHub directories or files without cloning the entire repository. This page covers the fundamental usage patterns to get you started.
+
+## Command Syntax
+
+The basic syntax for cloneit is:
+
+```bash
+cloneit [OPTIONS] <url>...
+```
+
+### Arguments
+
+- `<url>...` - URL to the GitHub directory or file (required)
+- You can pass a single URL or multiple comma-delimited URLs
+
+### Options
+
+- `-h, --help` - Print help information
+- `-V, --version` - Print version information
+- `-z, --zip` - Download and zip the directory or file
+- `-q, --quiet` - Disable verbose logging
+
+## Basic Workflow
+
+When you run cloneit, it follows these steps:
+
+1. **Validates the URL** - Ensures the GitHub URL is properly formatted
+2. **Downloads content** - Fetches the file or directory from GitHub
+3. **Creates structure** - Preserves the directory structure locally
+4. **Zips (optional)** - If `-z` flag is used, creates a zip archive
+
+<Note>
+cloneit uses the GitHub API to fetch content, which means you can download specific parts of a repository without cloning everything.
+</Note>
+
+## Common Use Cases
+
+### Download a Repository
+
+Download an entire repository:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit
+```
+
+This downloads the repository into a `cloneit` directory in your current location.
+
+### Download a Subdirectory
+
+Download only a specific folder from a repository:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src
+```
+
+This downloads only the `src` directory, preserving its structure.
+
+### Download a Single File
+
+Download an individual file:
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src/main.rs
+```
+
+The file will be downloaded to your current directory.
+
+## Output and Logging
+
+By default, cloneit provides verbose output showing:
+
+- Progress indicator (e.g., `[1/3]`)
+- Current step (validating, downloading, etc.)
+- Individual files being downloaded (marked with `+`)
+- Success confirmation
+
+### Quiet Mode
+
+To suppress informational output and only show warnings:
+
+```bash
+cloneit -q https://github.com/alok8bb/cloneit
+```
+
+<Tip>
+Quiet mode is useful when using cloneit in scripts or automation where you only want to see errors.
+</Tip>
+
+## GitHub API Authentication
+
+For higher rate limits and access to private repositories, you can provide a GitHub token:
+
+```bash
+export GITHUB_TOKEN=your_github_token_here
+cloneit https://github.com/username/private-repo
+```
+
+<Warning>
+Without authentication, you're limited to 60 requests per hour by GitHub's API rate limiting.
+</Warning>
+
+## Directory Structure
+
+When downloading directories, cloneit:
+
+- Creates a root directory named after the repository or target folder
+- Preserves the complete nested directory structure
+- Downloads all files recursively
+- Maintains file names and extensions
+
+## Next Steps
+
+- Learn about [downloading individual files](/usage/downloading-files)
+- Explore [downloading directories](/usage/downloading-directories)
+- Discover how to [create zip archives](/usage/zip-archives)
+- Download from [multiple URLs at once](/usage/multiple-urls)

@@ -1,0 +1,243 @@
+---
+title: Contributing
+description: Guidelines for contributing to the cloneit project
+---
+
+We welcome contributions to cloneit! This guide will help you get started with developing and contributing to the project.
+
+## Setting Up Development Environment
+
+### Prerequisites
+
+Ensure you have the following installed:
+
+- **Rust** (latest stable version)
+  ```bash
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  ```
+
+- **Git**
+  ```bash
+  # macOS
+  brew install git
+  
+  # Linux (Debian/Ubuntu)
+  sudo apt-get install git
+  ```
+
+### Clone and Build
+
+1. Fork the repository on GitHub
+2. Clone your fork:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/cloneit
+   cd cloneit
+   ```
+
+3. Build the project:
+   ```bash
+   cargo build
+   ```
+
+4. Run the development build:
+   ```bash
+   cargo run -- https://github.com/alok8bb/cloneit/tree/master/src
+   ```
+
+## Development Workflow
+
+### Running Tests
+
+Run the test suite:
+
+```bash
+cargo test
+```
+
+Run tests with output:
+
+```bash
+cargo test -- --nocapture
+```
+
+### Code Formatting
+
+The project uses `rustfmt` for consistent code formatting:
+
+```bash
+# Format all code
+cargo fmt
+
+# Check formatting without making changes
+cargo fmt -- --check
+```
+
+### Linting
+
+The project uses Clippy for linting (note the `#![warn(clippy::all)]` in `src/main.rs:1`):
+
+```bash
+# Run Clippy
+cargo clippy
+
+# Run Clippy with all warnings as errors
+cargo clippy -- -D warnings
+```
+
+### Running in Development Mode
+
+For development, use `cargo run` with arguments:
+
+```bash
+# Basic usage
+cargo run -- <github_url>
+
+# With zip flag
+cargo run -- -z <github_url>
+
+# With custom path
+cargo run -- <github_url> /path/to/destination
+
+# Multiple URLs
+cargo run -- <url1>,<url2>,<url3>
+
+# Enable debug logging
+RUST_LOG=debug cargo run -- <github_url>
+```
+
+## Coding Standards
+
+### Rust Style Guidelines
+
+1. **Follow Rust conventions**: Use `cargo fmt` to ensure consistent formatting
+2. **Use meaningful names**: Variables, functions, and types should have descriptive names
+3. **Write documentation**: Add doc comments (`///`) for public APIs
+4. **Handle errors properly**: Use `Result` types and the `?` operator for error propagation
+5. **Avoid unwrap()**: Prefer pattern matching or `?` operator for error handling
+
+### Code Organization
+
+- Keep modules focused on a single responsibility
+- Use `pub` only for items that need to be public
+- Group related functionality together
+- Add comments for complex logic
+
+### Example Code Style
+
+```rust
+/// Downloads a file from GitHub API
+/// 
+/// # Arguments
+/// 
+/// * `url` - The GitHub API URL for the file
+/// * `path` - The local path to save the file
+/// 
+/// # Errors
+/// 
+/// Returns an error if the download fails or file cannot be written
+pub async fn download_file(url: &str, path: &Path) -> Result<(), Box<dyn Error>> {
+    // Implementation
+}
+```
+
+## Testing Your Changes
+
+### Manual Testing Checklist
+
+Before submitting a PR, test the following scenarios:
+
+- [ ] Download a single file
+- [ ] Download a directory
+- [ ] Download a repository root
+- [ ] Download with `-z` flag (zipped output)
+- [ ] Download multiple URLs (comma-separated)
+- [ ] Download to custom path
+- [ ] Test with invalid URLs
+- [ ] Test with non-existent repositories
+- [ ] Test with private repositories (using `GITHUB_TOKEN`)
+
+### Environment Variables
+
+Test with GitHub authentication:
+
+```bash
+export GITHUB_TOKEN="your_github_token"
+cargo run -- <github_url>
+```
+
+## Submitting Changes
+
+### Creating a Pull Request
+
+1. **Create a feature branch**:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes** and commit them:
+   ```bash
+   git add .
+   git commit -m "Add feature: description of your changes"
+   ```
+
+3. **Run tests and checks**:
+   ```bash
+   cargo test
+   cargo fmt
+   cargo clippy
+   ```
+
+4. **Push to your fork**:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+5. **Open a Pull Request** on GitHub:
+   - Provide a clear title and description
+   - Reference any related issues
+   - Explain what your changes do and why
+
+### Commit Message Guidelines
+
+- Use present tense ("Add feature" not "Added feature")
+- Use imperative mood ("Move cursor to..." not "Moves cursor to...")
+- First line should be a brief summary (50 characters or less)
+- Add detailed description if necessary
+
+Examples:
+```
+Add support for downloading gists
+
+Fix issue with recursive directory downloads
+
+Improve error messages for invalid URLs
+```
+
+## Getting Help
+
+- **Issues**: Check existing issues on GitHub before creating new ones
+- **Discussions**: Use GitHub Discussions for questions and ideas
+- **Code Review**: Be open to feedback during the PR review process
+
+## License
+
+By contributing to cloneit, you agree that your contributions will be licensed under the MIT License.
+
+```
+MIT License
+
+Copyright (c) 2022 Alok Pawar
+```
+
+See the [LICENSE](https://github.com/alok8bb/cloneit/blob/master/LICENSE) file for full license text.
+
+## Code of Conduct
+
+- Be respectful and constructive in discussions
+- Welcome newcomers and help them get started
+- Focus on what is best for the community
+- Show empathy towards other community members
+
+## Recognition
+
+Contributors are recognized in the project's commit history and may be mentioned in release notes for significant contributions.

@@ -1,0 +1,87 @@
+---
+title: Command Overview
+description: Learn the command syntax and structure of cloneit
+---
+
+## Command Syntax
+
+The basic syntax for cloneit is:
+
+```bash
+cloneit [OPTIONS] <url>... [path]
+```
+
+## Arguments
+
+### URL(s)
+
+The URL to the GitHub directory or file you want to download. This argument is **required**.
+
+```bash
+cloneit https://github.com/alok8bb/cloneit
+```
+
+You can pass multiple comma-delimited URLs to download multiple directories or files in a single command:
+
+```bash
+cloneit https://github.com/fpic/linpeace.py,https://github.com/s0xf/r2gihdra.c,https://github.com/fpic/defpol/master
+```
+
+### Path (Optional)
+
+An optional destination path where the downloaded content will be saved.
+
+```bash
+cloneit https://github.com/alok8bb/cloneit ./my-downloads
+```
+
+If not specified, content is downloaded to the current directory.
+
+## Available Options
+
+- `-z, --zip` - Download and zip directories
+- `-q, --quiet` - Disable verbose logging
+- `-h, --help` - Print help information
+- `-V, --version` - Print version information
+
+For detailed information about each flag, see the [Flags reference](/commands/flags).
+
+## Examples
+
+### Download a Repository
+
+```bash
+cloneit https://github.com/alok8bb/cloneit
+```
+
+### Download a Specific Folder
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src
+```
+
+### Download a Single File
+
+```bash
+cloneit https://github.com/alok8bb/cloneit/tree/master/src/main.rs
+```
+
+### Download Multiple Resources
+
+```bash
+cloneit https://github.com/user/repo1,https://github.com/user/repo2/tree/main/folder
+```
+
+### Download with Options
+
+```bash
+cloneit -z https://github.com/alok8bb/cloneit
+```
+
+This downloads the repository and creates a ZIP archive.
+
+```bash
+cloneit -q https://github.com/alok8bb/cloneit
+```
+
+This downloads the repository with minimal console output.

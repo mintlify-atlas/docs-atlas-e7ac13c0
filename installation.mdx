@@ -1,0 +1,130 @@
+---
+title: Installation
+description: Install cloneit on your system using various methods
+---
+
+## Prerequisites
+
+Before installing cloneit, ensure you have one of the following:
+
+- **Git and Cargo** (Rust toolchain) for building from source
+- **Cargo** alone for installation from crates.io
+
+<Note>
+  If you don't have Rust installed, visit [rustup.rs](https://rustup.rs) to install the Rust toolchain.
+</Note>
+
+## Installation Methods
+
+<AccordionGroup>
+  <Accordion title="From Git (Recommended for latest version)">
+    Clone the repository and run the installation script:
+
+    ```bash
+    git clone https://github.com/alok8bb/cloneit
+    cd cloneit
+    bash ./install.sh
+    ```
+
+    The `install.sh` script runs `cargo install --path .` which compiles and installs the binary to your Cargo bin directory.
+
+    <Note>
+      This method installs the latest version directly from the source code.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Using Cargo Install">
+    Install directly from crates.io using Cargo:
+
+    ```bash
+    cargo install cloneit
+    ```
+
+    This downloads and compiles the latest published version from the Rust package registry.
+  </Accordion>
+
+  <Accordion title="Building from Source">
+    For development or customization, you can build manually:
+
+    ```bash
+    git clone https://github.com/alok8bb/cloneit
+    cd cloneit
+    cargo build --release
+    ```
+
+    The compiled binary will be located at `target/release/cloneit`. You can then move it to a directory in your PATH:
+
+    ```bash
+    # Linux/macOS
+    sudo mv target/release/cloneit /usr/local/bin/
+
+    # Or to your local bin directory
+    mv target/release/cloneit ~/.local/bin/
+    ```
+
+    <Warning>
+      Make sure the destination directory is in your system's PATH environment variable.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+## Verify Installation
+
+After installation, verify that cloneit is properly installed:
+
+```bash
+cloneit --version
+```
+
+You should see output similar to:
+
+```
+cloneit 1.0.0
+```
+
+To view the help message and available options:
+
+```bash
+cloneit --help
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Command not found">
+    If you get a "command not found" error, the Cargo bin directory may not be in your PATH.
+
+    Add this line to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
+
+    ```bash
+    export PATH="$HOME/.cargo/bin:$PATH"
+    ```
+
+    Then reload your shell configuration:
+
+    ```bash
+    source ~/.bashrc  # or source ~/.zshrc
+    ```
+  </Accordion>
+
+  <Accordion title="Compilation errors">
+    If you encounter compilation errors:
+
+    1. Ensure you have the latest Rust toolchain:
+       ```bash
+       rustup update
+       ```
+
+    2. Check that you meet the minimum Rust version requirements (edition 2018 or later)
+
+    3. Try cleaning the build cache and rebuilding:
+       ```bash
+       cargo clean
+       cargo build --release
+       ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have cloneit installed, check out the [Quickstart](/quickstart) guide to learn how to use it.

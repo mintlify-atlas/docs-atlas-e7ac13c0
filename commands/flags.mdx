@@ -1,0 +1,112 @@
+---
+title: Command Flags
+description: Complete reference for all cloneit command-line flags and options
+---
+
+## Available Flags
+
+cloneit supports several command-line flags to customize its behavior.
+
+## Core Flags
+
+<ParamField path="-z, --zip" type="boolean" default="false">
+  Download and zip directories into a compressed archive.
+
+  When this flag is enabled, cloneit will download the specified GitHub directory or file and automatically create a ZIP archive of the downloaded content. The archive will be named after the downloaded directory with a `.zip` extension.
+
+  **Example:**
+  ```bash
+  cloneit -z https://github.com/alok8bb/cloneit
+  ```
+
+  This creates a `cloneit.zip` file containing the downloaded repository.
+
+  **Example with long form:**
+  ```bash
+  cloneit --zip https://github.com/alok8bb/cloneit/tree/master/src
+  ```
+
+  <Note>
+    The zip feature is particularly useful when you need to archive or share the downloaded content.
+  </Note>
+</ParamField>
+
+<ParamField path="-q, --quiet" type="boolean" default="false">
+  Disable verbose logging and show only warnings and errors.
+
+  By default, cloneit displays informative messages about each step of the download process (validation, downloading, completion). When quiet mode is enabled, only warning and error messages are shown.
+
+  **Example:**
+  ```bash
+  cloneit -q https://github.com/alok8bb/cloneit
+  ```
+
+  **Example with long form:**
+  ```bash
+  cloneit --quiet https://github.com/alok8bb/cloneit
+  ```
+
+  <Tip>
+    Use quiet mode when running cloneit in scripts or automated workflows where you only need to see errors.
+  </Tip>
+</ParamField>
+
+<ParamField path="path" type="string" optional>
+  Optional destination path where the downloaded content will be saved.
+
+  Specify a custom directory path where you want to save the downloaded GitHub content. If not provided, content is downloaded to the current working directory.
+
+  **Example:**
+  ```bash
+  cloneit https://github.com/alok8bb/cloneit ./downloads
+  ```
+
+  This downloads the repository to the `./downloads` directory.
+
+  **Example with absolute path:**
+  ```bash
+  cloneit https://github.com/alok8bb/cloneit /home/user/projects
+  ```
+
+  <Note>
+    The directory will be created if it doesn't exist.
+  </Note>
+</ParamField>
+
+## System Flags
+
+<ParamField path="-h, --help" type="boolean">
+  Print help information and exit.
+
+  Displays the command usage, available options, and examples.
+
+  **Example:**
+  ```bash
+  cloneit --help
+  ```
+</ParamField>
+
+<ParamField path="-V, --version" type="boolean">
+  Print version information and exit.
+
+  Displays the current version of cloneit.
+
+  **Example:**
+  ```bash
+  cloneit --version
+  ```
+</ParamField>
+
+## Combining Flags
+
+You can combine multiple flags in a single command:
+
+```bash
+cloneit -zq https://github.com/alok8bb/cloneit ./my-projects
+```
+
+This command:
+- Downloads the repository
+- Creates a ZIP archive (`-z`)
+- Runs in quiet mode (`-q`)
+- Saves to the `./my-projects` directory

@@ -1,0 +1,118 @@
+---
+title: Authentication
+description: Configure GitHub authentication to increase rate limits and access private repositories
+---
+
+## Overview
+
+The `cloneit` CLI uses the GitHub API to fetch repository contents. While authentication is optional for public repositories, it provides significant benefits including higher rate limits and access to private repositories.
+
+## GitHub Token
+
+### Setting Up Authentication
+
+To authenticate with GitHub, set the `GITHUB_TOKEN` environment variable:
+
+```bash
+export GITHUB_TOKEN="your_github_token_here"
+```
+
+For permanent configuration, add it to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+
+```bash
+echo 'export GITHUB_TOKEN="your_github_token_here"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Creating a GitHub Token
+
+1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token" (classic)
+3. Give your token a descriptive name
+4. Select scopes:
+   - `repo` (for private repositories)
+   - `public_repo` (for public repositories only)
+5. Click "Generate token"
+6. Copy the token immediately (you won't see it again)
+
+### How It Works
+
+When `GITHUB_TOKEN` is set, cloneit automatically includes it in API requests:
+
+```rust
+// From src/requests.rs:65-67
+if let Ok(token) = env::var("GITHUB_TOKEN") {
+    req = req.header("Authorization", format!("token {}", token));
+}
+```
+
+The token is used for both API requests (src/requests.rs:65-67) and file downloads (src/requests.rs:188-190).
+
+## Rate Limits
+
+### GitHub API Rate Limits
+
+GitHub enforces different rate limits based on authentication status:
+
+| Authentication | Requests per Hour |
+|----------------|-------------------|
+| Unauthenticated | 60 |
+| Authenticated | 5,000 |
+
+### When Authentication is Required
+
+You'll need authentication in these scenarios:
+
+- **Private repositories**: Authentication is mandatory
+- **High usage**: When cloning multiple directories or large repositories
+- **Rate limit errors**: If you encounter "API rate limit exceeded" messages
+- **Organization repositories**: Some organizations require authentication even for public repos
+
+### Rate Limit Errors
+
+If you hit the rate limit, you'll see an error message from the GitHub API:
+
+```
+API rate limit exceeded for <your-ip>
+```
+
+To resolve this, either:
+1. Set up authentication with `GITHUB_TOKEN`
+2. Wait for the rate limit to reset (check the `X-RateLimit-Reset` header)
+
+## Security Best Practices
+
+<Warning>
+  Never commit your GitHub token to version control or share it publicly. Treat it like a password.
+</Warning>
+
+### Protecting Your Token
+
+- Store tokens in environment variables, not in code
+- Use GitHub's fine-grained tokens with minimal required permissions
+- Regularly rotate your tokens
+- Revoke tokens immediately if compromised
+- Consider using a secrets manager for team environments
+
+### Token Permissions
+
+For cloneit, you only need read access:
+
+- **Public repositories**: `public_repo` scope
+- **Private repositories**: `repo` scope (read access)
+
+Avoid granting write, delete, or admin permissions unless absolutely necessary.
+
+## Verification
+
+To verify your token is being used:
+
+1. Run cloneit with a repository URL
+2. Check that requests complete without rate limit errors
+3. For private repos, verify you can clone without authentication errors
+
+You can also check your current rate limit status:
+
+```bash
+curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/rate_limit
+```
