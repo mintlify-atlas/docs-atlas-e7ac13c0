@@ -1,0 +1,70 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "cloneit",
+  "projectDescription": "A command-line tool to download specific GitHub directories or files",
+  "theme": "aspen",
+  "primaryColor": "#E34C26",
+  "lightColor": "#F28B74",
+  "darkColor": "#B53E1F",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Usage Guide",
+        "pages": [
+          "usage/basic-usage",
+          "usage/downloading-files",
+          "usage/downloading-directories",
+          "usage/zip-archives",
+          "usage/multiple-urls"
+        ]
+      },
+      {
+        "group": "Command Reference",
+        "pages": [
+          "commands/overview",
+          "commands/flags"
+        ]
+      },
+      {
+        "group": "Advanced",
+        "pages": [
+          "advanced/authentication",
+          "advanced/environment-variables",
+          "advanced/troubleshooting"
+        ]
+      },
+      {
+        "group": "Development",
+        "pages": [
+          "development/building-from-source",
+          "development/architecture",
+          "development/contributing"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Download specific GitHub directories without cloning entire repository",
+    "Download individual files from any GitHub repository",
+    "Support for multiple URLs in a single command",
+    "Optional ZIP archive creation for downloaded content",
+    "GitHub API integration with optional token authentication",
+    "Async recursive directory traversal",
+    "Cross-platform support (Windows, macOS, Linux)"
+  ],
+  "publicApiSurface": [
+    "cloneit <url>... - Main command to download GitHub directories/files",
+    "-z, --zip - Download and zip the directory/file",
+    "-q, --quiet - Disable verbose logging",
+    "<path> - Optional destination path for downloaded content",
+    "GITHUB_TOKEN - Environment variable for GitHub API authentication"
+  ]
+}
